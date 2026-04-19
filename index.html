@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PsiClínica</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sage:#3d7065;--sage-l:#e6f2ef;--sage-m:#6fa898;--sage-d:#2a4f47;
+  --warm:#f5f1eb;--warm2:#ece7df;
+  --ink:#1a2a26;--ink2:#4a5e59;--ink3:#7a8f8a;
+  --acc:#b87333;--acc-l:#f5ead9;
+  --w:#fff;--bdr:#cdc8c0;--bdr2:#e0dbd3;
+  --red:#c0392b;--red-l:#fdecea;
+  --green:#2e7d5a;--green-l:#e6f5ee;
+  --blue:#1a6fa5;--blue-l:#e6f1fa;
+  --purple:#5b3bcc;--purple-l:#ede8fe;
+  --gold:#c9973a;--gold-l:#fef3dc;
+  --r:12px;--rs:8px;--rl:16px;
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--warm);color:var(--ink);font-size:14px;overflow:hidden}
+h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
+button,input,select,textarea{font-family:'DM Sans',sans-serif}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+
+/* TOAST */
+#psToast{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.psToastItem{background:var(--ink);color:#fff;padding:10px 18px;border-radius:var(--rs);font-size:13px;opacity:0;transform:translateX(20px);transition:all .3s}
+.psToastItem.show{opacity:1;transform:translateX(0)}
+.psToastItem.ok{background:var(--green)}.psToastItem.er{background:var(--red)}.psToastItem.wa{background:var(--acc)}
+
+/* LOGIN */
+#psLoginScreen{display:flex;height:100vh;align-items:center;justify-content:center}
+.psLoginCard{display:flex;width:740px;border-radius:20px;overflow:hidden;border:1px solid var(--bdr);box-shadow:0 20px 60px rgba(0,0,0,.08)}
+.psLoginLeft{width:290px;background:var(--sage-d);padding:44px 36px;display:flex;flex-direction:column;flex-shrink:0}
+.psLoginLeft h1{color:#fff;font-size:30px;line-height:1.25;margin-bottom:12px}
+.psLoginLeft p{color:rgba(255,255,255,.55);font-size:12.5px;line-height:1.65;flex:1}
+.psDemoList{margin-top:20px;display:flex;flex-direction:column;gap:6px}
+.psDemoBtn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:8px 12px;font-size:11.5px;color:rgba(255,255,255,.65);cursor:pointer;text-align:left;transition:all .15s}
+.psDemoBtn:hover{background:rgba(255,255,255,.16);color:#fff}
+.psDemoBtn strong{display:block;font-size:12px;font-weight:500}
+.psDemoBtn span{font-size:10.5px;opacity:.7}
+.psLoginRight{flex:1;background:var(--w);padding:44px 40px;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.psLoginRight h2{font-size:24px;margin-bottom:2px}
+.psLoginRight p{font-size:13px;color:var(--ink2)}
+.psField{margin-bottom:2px}
+.psField label{display:block;font-size:10.5px;font-weight:500;color:var(--ink2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.psField input,.psField select,.psField textarea{width:100%;border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 14px;font-size:13.5px;color:var(--ink);background:var(--warm);outline:none;transition:border .2s}
+.psField input:focus,.psField select:focus,.psField textarea:focus{border-color:var(--sage);background:#fff}
+.psField textarea{resize:vertical;min-height:90px}
+.psErrMsg{font-size:12px;color:var(--red);display:none}
+
+/* BUTTONS */
+.psBtn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:var(--rs);padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.psBtnP{background:var(--sage);color:#fff}.psBtnP:hover{background:var(--sage-d)}
+.psBtnS{background:var(--w);color:var(--ink2);border:1px solid var(--bdr)}.psBtnS:hover{border-color:var(--sage);color:var(--sage)}
+.psBtnD{background:var(--red-l);color:var(--red);border:1px solid #f5c0bb}.psBtnD:hover{background:var(--red);color:#fff}
+.psBtnSm{padding:6px 12px;font-size:12px}.psBtnXs{padding:4px 9px;font-size:11px}.psBtnFull{width:100%}
+
+/* APP SHELL */
+#psApp{display:none;height:100vh;flex-direction:row}
+#psApp.psVisible{display:flex}
+.psSidebar{width:215px;background:var(--ink);display:flex;flex-direction:column;flex-shrink:0}
+.psSbLogo{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.07)}
+.psSbLogo h2{color:#fff;font-size:17px}
+.psSbLogo p{color:rgba(255,255,255,.35);font-size:10.5px;margin-top:3px}
+.psSbNav{padding:14px 0;flex:1;overflow-y:auto}
+.psNavItem{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:rgba(255,255,255,.5);font-size:13px;transition:all .15s;border-left:2px solid transparent}
+.psNavItem:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.04)}
+.psNavItem.psActive{color:#fff;background:rgba(255,255,255,.07);border-left-color:var(--sage-m)}
+.psNavItem svg{width:15px;height:15px;flex-shrink:0;opacity:.7}.psNavItem.psActive svg{opacity:1}
+.psSbFoot{padding:14px 20px;border-top:1px solid rgba(255,255,255,.07)}
+.psSbAvatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#fff;flex-shrink:0}
+.psMain{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.psMainInner{flex:1;overflow-y:auto;padding:28px 32px}
+
+/* CARDS */
+.psCard{background:var(--w);border:1px solid var(--bdr2);border-radius:var(--r);padding:20px}
+.psCt{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bdr2)}
+.psGrid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.psGrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.psGrid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* STAT CARDS */
+.psStat{background:var(--w);border:1px solid var(--bdr2);border-radius:var(--r);padding:18px}
+.psStatL{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);margin-bottom:8px}
+.psStatV{font-size:28px;font-family:'DM Serif Display',serif;color:var(--ink);line-height:1}
+.psStatS{font-size:11px;color:var(--ink3);margin-top:6px}
+.psStatGreen{border-top:3px solid var(--green)}
+.psStatBlue{border-top:3px solid var(--blue)}
+.psStatGold{border-top:3px solid var(--gold)}
+.psStatSage{border-top:3px solid var(--sage)}
+
+/* BADGES */
+.psBadge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:500}
+.psBgAtivo{background:var(--green-l);color:var(--green)}
+.psBgEspera{background:var(--acc-l);color:var(--acc)}
+.psBgInativo{background:#eee;color:#888}
+.psBgParticular{background:var(--gold-l);color:var(--gold)}
+.psBgUnimed{background:var(--blue-l);color:var(--blue)}
+.psBgAmil{background:var(--purple-l);color:var(--purple)}
+.psBgSula{background:var(--green-l);color:var(--green)}
+.psBgBradesco{background:#fde8e8;color:#c0392b}
+.psBgMarinha{background:#e0e8f5;color:#1a3a6a}
+.psBgOutro{background:#f0eee8;color:#6b5a}
+.psBgAdmin{background:var(--purple-l);color:var(--purple)}
+.psBgProf{background:var(--blue-l);color:var(--blue)}
+.psBgRec{background:var(--acc-l);color:var(--acc)}
+.psBgPago{background:var(--green-l);color:var(--green)}
+.psBgConf{background:var(--green-l);color:var(--green)}
+.psBgPend{background:var(--acc-l);color:var(--acc)}
+.psBgDone{background:#eee;color:#888}
+
+/* TABLE */
+.psTw{background:var(--w);border:1px solid var(--bdr2);border-radius:var(--r);overflow:hidden}
+.psTbl{width:100%;border-collapse:collapse}
+.psTbl th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink2);font-weight:500;padding:11px 16px;text-align:left;border-bottom:1px solid var(--bdr2);background:var(--warm)}
+.psTbl td{padding:11px 16px;font-size:13px;color:var(--ink);border-bottom:1px solid var(--bdr2);vertical-align:middle}
+.psTbl tr:last-child td{border-bottom:none}
+.psTbl tbody tr:hover td{background:var(--warm)}
+.psAv{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;margin-right:8px;vertical-align:middle}
+
+/* MODAL */
+.psMo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:20px}
+.psMo.psOpen{display:flex}
+.psMb{background:var(--w);border-radius:var(--rl);padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.15)}
+.psMb.wide{max-width:680px}
+.psMh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.psMh h3{font-size:22px;color:var(--ink)}
+.psMClose{background:none;border:none;cursor:pointer;color:var(--ink3);font-size:22px;line-height:1;padding:0 4px}
+.psMClose:hover{color:var(--ink)}
+.psMSub{font-size:13px;color:var(--ink2);margin-bottom:20px}
+.psMActions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.psFieldRow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* PAGE HEADER */
+.psPhdr{margin-bottom:24px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.psPhdrLeft h2{font-size:26px;color:var(--ink)}
+.psPhdrLeft p{font-size:13px;color:var(--ink2);margin-top:3px}
+.psDivider{height:1px;background:var(--bdr2);margin:18px 0}
+.psSectionTitle{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+/* AGENDA */
+.psAgendaLayout{display:grid;grid-template-columns:1fr 300px;gap:20px}
+.psCalNavRow{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.psCalGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.psCalDl{font-size:9.5px;color:var(--ink3);padding:3px 0;text-transform:uppercase;letter-spacing:.04em}
+.psCalDay{font-size:12px;padding:7px 0;border-radius:6px;cursor:pointer;color:var(--ink);position:relative;user-select:none;transition:background .12s}
+.psCalDay:hover{background:var(--warm2)}
+.psCalDay.psToday{background:var(--sage);color:#fff;font-weight:500}
+.psCalDay.psSel{outline:2px solid var(--sage);outline-offset:-2px}
+.psCalDay.psHasEv::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;background:var(--acc);border-radius:50%}
+.psCalDay.psToday.psHasEv::after{background:#fff}
+.psCalDay.psOther{color:var(--bdr)}
+.psApptItem{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--bdr2);cursor:pointer;transition:border-color .12s;margin-bottom:8px}
+.psApptItem:hover{border-color:var(--sage-m)}
+
+/* PRONTUARIO */
+.psPtLayout{display:grid;grid-template-columns:280px 1fr;gap:20px;height:calc(100vh - 200px)}
+.psPtPanel{background:var(--w);border:1px solid var(--bdr2);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.psPtSearch{padding:12px;border-bottom:1px solid var(--bdr2)}
+.psPtSearch input{width:100%;border:1px solid var(--bdr);border-radius:var(--rs);padding:8px 12px;font-size:12.5px;background:var(--warm);outline:none}
+.psPtList{overflow-y:auto;flex:1}
+.psPtItem{padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--bdr2);display:flex;align-items:center;gap:10px;transition:background .12s}
+.psPtItem:hover{background:var(--warm)}
+.psPtItem.psActive{background:var(--sage-l);border-left:3px solid var(--sage)}
+.psPtDetail{background:var(--w);border:1px solid var(--bdr2);border-radius:var(--r);overflow-y:auto;padding:22px}
+
+/* TIMELINE */
+.psTlItem{display:flex;gap:14px}
+.psTlLine{display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0}
+.psTlDot{width:10px;height:10px;border-radius:50%;background:var(--sage);margin-top:4px;flex-shrink:0}
+.psTlLn{flex:1;width:1px;background:var(--bdr2);margin:3px 0;min-height:20px}
+.psTlItem:last-child .psTlLn{display:none}
+.psTlContent{flex:1;padding-bottom:16px}
+.psTlDate{font-size:11px;color:var(--ink3);margin-bottom:5px;font-weight:500}
+.psTlCard{background:var(--w);border:1px solid var(--bdr2);border-radius:var(--rs);padding:14px}
+.psTlBody{font-size:12.5px;color:var(--ink2);line-height:1.65}
+
+/* UPLOAD */
+.psRtabs{display:flex;border-bottom:1px solid var(--bdr2);margin-bottom:18px}
+.psRtab{padding:9px 18px;cursor:pointer;font-size:13px;color:var(--ink2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.psRtab.psActive{color:var(--sage);border-bottom-color:var(--sage);font-weight:500}
+.psRtabContent{display:none}.psRtabContent.psActive{display:block}
+.psUploadZone{border:2px dashed var(--bdr);border-radius:var(--r);padding:36px;text-align:center;cursor:pointer;background:var(--warm);transition:border-color .15s}
+.psUploadZone:hover{border-color:var(--sage)}
+.psFileItem{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--warm);border-radius:var(--rs);border:1px solid var(--bdr2);margin-top:8px}
+.psFileIco{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;flex-shrink:0}
+
+/* FINANCEIRO */
+.psBarChart{display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:10px}
+.psBarCol{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.psBarFill{width:100%;border-radius:4px 4px 0 0;background:var(--sage);transition:height .4s}
+.psBarLbl{font-size:9px;color:var(--ink3)}
+.psBarVal{font-size:9px;color:var(--ink2);font-weight:500}
+.psPieLegend{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.psPieLegItem{display:flex;align-items:center;gap:8px;font-size:12px}
+.psPieDot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.psPayRow{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--bdr2);border-radius:var(--rs);background:var(--w);margin-bottom:8px}
+.psPayIco{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+
+/* USERS */
+.psUserGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.psUserCard{background:var(--w);border:1px solid var(--bdr2);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px}
+.psUserAv{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:#fff;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="psToast"></div>
+
+<!-- LOGIN -->
+<div id="psLoginScreen">
+  <div class="psLoginCard">
+    <div class="psLoginLeft">
+      <h1>PsiClínica</h1>
+      <p>Plataforma completa de gestão clínica — pacientes, agenda, prontuários e financeiro.</p>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);margin-top:24px;margin-bottom:8px">Acessos demo</div>
+      <div class="psDemoList">
+        <button class="psDemoBtn" onclick="psPreencherLogin('admin@psiclinica.com','123456')"><strong>Administrador</strong><span>admin@psiclinica.com / 123456</span></button>
+        <button class="psDemoBtn" onclick="psPreencherLogin('dra.ana@psiclinica.com','123456')"><strong>Psicóloga — Dra. Ana</strong><span>dra.ana@psiclinica.com / 123456</span></button>
+        <button class="psDemoBtn" onclick="psPreencherLogin('dr.carlos@psiclinica.com','123456')"><strong>Psicólogo — Dr. Carlos</strong><span>dr.carlos@psiclinica.com / 123456</span></button>
+        <button class="psDemoBtn" onclick="psPreencherLogin('recepcao@psiclinica.com','123456')"><strong>Recepção</strong><span>recepcao@psiclinica.com / 123456</span></button>
+      </div>
+    </div>
+    <div class="psLoginRight">
+      <div><h2>Bem-vindo</h2><p>Faça login para acessar o sistema</p></div>
+      <div class="psField"><label>E-mail</label><input type="email" id="psEmailInput" placeholder="seu@email.com"/></div>
+      <div class="psField"><label>Senha</label><input type="password" id="psSenhaInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')psEntrar()"/></div>
+      <p class="psErrMsg" id="psErrLogin">E-mail ou senha incorretos.</p>
+      <button class="psBtn psBtnP psBtnFull" style="padding:12px" onclick="psEntrar()">Entrar no sistema</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="psApp">
+  <div class="psSidebar">
+    <div class="psSbLogo"><h2>PsiClínica</h2><p>Gestão Clínica</p></div>
+    <nav class="psSbNav" id="psSbNav"></nav>
+    <div class="psSbFoot">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="psSbAvatar" id="psSbAvatar"></div>
+        <div><div style="color:rgba(255,255,255,.8);font-size:12.5px;font-weight:500" id="psSbNome"></div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:1px" id="psSbRole"></div></div>
+      </div>
+      <button onclick="psSair()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:11px;cursor:pointer;margin-top:8px;padding:0">Sair da conta</button>
+    </div>
+  </div>
+  <div class="psMain"><div class="psMainInner" id="psMainInner"></div></div>
+</div>
+
+<!-- MODAL PACIENTE -->
+<div class="psMo" id="psMoPaciente">
+  <div class="psMb">
+    <div class="psMh"><h3>Cadastro de Paciente</h3><button class="psMClose" onclick="psFecharModal('psMoPaciente')">×</button></div>
+    <p class="psMSub">Preencha os dados do paciente</p>
+    <div class="psFieldRow" style="margin-bottom:14px">
+      <div class="psField"><label>Nome completo *</label><input type="text" id="psPatNome" placeholder="Ex: João da Silva"/></div>
+      <div class="psField"><label>Data de nascimento</label><input type="date" id="psPatNasc"/></div>
+    </div>
+    <div class="psFieldRow" style="margin-bottom:14px">
+      <div class="psField"><label>Telefone</label><input type="text" id="psPatTel" placeholder="(11) 99999-0000"/></div>
+      <div class="psField"><label>E-mail</label><input type="email" id="psPatEmail" placeholder="paciente@email.com"/></div>
+    </div>
+    <div class="psFieldRow" style="margin-bottom:14px">
+      <div class="psField"><label>Psicólogo responsável *</label><select id="psPatPsi"></select></div>
+      <div class="psField"><label>Plano de saúde *</label><select id="psPatPlano">
+        <option value="particular">Particular</option>
+        <option value="sulamerica">SulAmérica</option>
+        <option value="unimed">Unimed</option>
+        <option value="amil">Amil</option>
+        <option value="bradesco">Bradesco Saúde</option>
+        <option value="marinha">Plano da Marinha</option>
+        <option value="outro">Outro convênio</option>
+      </select></div>
+    </div>
+    <div class="psFieldRow" style="margin-bottom:14px">
+      <div class="psField"><label>Número do cartão</label><input type="text" id="psPatCartao" placeholder="Somente se convênio"/></div>
+      <div class="psField"><label>Status</label><select id="psPatStatus"><option value="espera">Lista de espera</option><option value="ativo" selected>Ativo</option></select></div>
+    </div>
+    <div class="psField" style="margin-bottom:14px"><label>Diagnóstico / Queixa principal</label><input type="text" id="psPatDx" placeholder="Ex: Transtorno de ansiedade generalizada"/></div>
+    <div class="psField"><label>Observações</label><textarea id="psPatObs" rows="2" placeholder="Informações adicionais..."></textarea></div>
+    <div class="psMActions"><button class="psBtn psBtnS" onclick="psFecharModal('psMoPaciente')">Cancelar</button><button class="psBtn psBtnP" onclick="psSalvarPaciente()">Cadastrar</button></div>
+  </div>
+</div>
+
+<!-- MODAL PAGAMENTO -->
+<div class="psMo" id="psMoPagamento">
+  <div class="psMb">
+    <div class="psMh"><h3>Registrar Pagamento</h3><button class="psMClose" onclick="psFecharModal('psMoPagamento')">×</button></div>
+    <p class="psMSub" id="psPaySub">Registrar pagamento</p>
+    <div class="psFieldRow" style="margin-bottom:14px">
+      <div class="psField"><label>Data *</label><input type="date" id="psPayData" value="2026-04-11"/></div>
+      <div class="psField"><label>Valor (R$) *</label><input type="number" id="psPayValor" placeholder="0,00" step="0.01" min="0"/></div>
+    </div>
+    <div class="psFieldRow" style="margin-bottom:14px">
+      <div class="psField"><label>Plano / Tipo</label><select id="psPayPlano">
+        <option value="particular">Particular</option><option value="sulamerica">SulAmérica</option><option value="unimed">Unimed</option><option value="amil">Amil</option><option value="bradesco">Bradesco Saúde</option><option value="marinha">Plano da Marinha</option><option value="outro">Outro convênio</option>
+      </select></div>
+      <div class="psField"><label>Forma de pagamento</label><select id="psPayForma">
+        <option>Dinheiro</option><option>Cartão débito</option><option>Cartão crédito</option><option>PIX</option><option>Transferência</option><option>Convênio</option>
+      </select></div>
+    </div>
+    <div class="psField"><label>Paciente</label><select id="psPayPaciente"></select></div>
+    <div class="psField" style="margin-top:14px"><label>Observação</label><input type="text" id="psPayObs" placeholder="Ex: Sessão 12, copagamento..."/></div>
+    <div class="psMActions"><button class="psBtn psBtnS" onclick="psFecharModal('psMoPagamento')">Cancelar</button><button class="psBtn psBtnP" onclick="psSalvarPagamento()">Registrar</button></div>
+  </div>
+</div>
+
+<!-- MODAL RELATÓRIO -->
+<div class="psMo" id="psMoRelatorio">
+  <div class="psMb wide">
+    <div class="psMh"><h3>Novo Relatório de Sessão</h3><button class="psMClose" onclick="psFecharModal('psMoRelatorio')">×</button></div>
+    <p class="psMSub" id="psRepSub">Relatório do paciente</p>
+    <div class="psFieldRow" style="margin-bottom:14px">
+      <div class="psField"><label>Data da sessão *</label><input type="date" id="psRepData" value="2026-04-11"/></div>
+      <div class="psField"><label>Duração</label><select id="psRepDur"><option>50 min</option><option>60 min</option><option>90 min</option><option>120 min</option></select></div>
+    </div>
+    <div class="psRtabs">
+      <div class="psRtab psActive" onclick="psTrocarAba('escrita',this)">Texto escrito</div>
+      <div class="psRtab" onclick="psTrocarAba('upload',this)">Importar arquivo</div>
+    </div>
+    <div class="psRtabContent psActive" id="psTabEscrita">
+      <div class="psField" style="margin-bottom:14px"><label>Título</label><input type="text" id="psRepTitulo" placeholder="Ex: Sessão 12 — Exposição gradual"/></div>
+      <div class="psField"><label>Conteúdo *</label><textarea id="psRepCorpo" rows="8" placeholder="Descreva os tópicos abordados, evolução, técnicas, observações..."></textarea></div>
+    </div>
+    <div class="psRtabContent" id="psTabUpload">
+      <div class="psUploadZone" onclick="document.getElementById('psFileInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--sage)'" ondragleave="this.style.borderColor=''" ondrop="psDropArquivo(event)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p style="color:var(--ink2);font-size:13px;margin-top:8px">Clique ou arraste um arquivo aqui</p>
+        <p style="color:var(--ink3);font-size:11px;margin-top:4px">Aceita PDF, DOCX, JPG, PNG, TXT</p>
+      </div>
+      <input type="file" id="psFileInput" style="display:none" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt" onchange="psSelecionarArquivos(this.files)"/>
+      <div id="psListaArquivos"></div>
+    </div>
+    <div class="psMActions"><button class="psBtn psBtnS" onclick="psFecharModal('psMoRelatorio')">Cancelar</button><button class="psBtn psBtnP" onclick="psSalvarRelatorio()">Salvar Relatório</button></div>
+  </div>
+</div>
+
+<!-- MODAL USUÁRIO -->
+<div class="psMo" id="psMoUsuario">
+  <div class="psMb">
+    <div class="psMh"><h3 id="psUsrTitulo">Novo Usuário</h3><button class="psMClose" onclick="psFecharModal('psMoUsuario')">×</button></div>
+    <p class="psMSub">Configure o acesso para um membro da equipe</p>
+    <div class="psFieldRow" style="margin-bottom:14px">
+      <div class="psField"><label>Nome completo *</label><input type="text" id="psUsrNome" placeholder="Nome"/></div>
+      <div class="psField"><label>Especialidade</label><input type="text" id="psUsrEspec" placeholder="Ex: Psicóloga Clínica"/></div>
+    </div>
+    <div class="psField" style="margin-bottom:14px"><label>E-mail *</label><input type="email" id="psUsrEmail" placeholder="profissional@psiclinica.com"/></div>
+    <div class="psFieldRow" style="margin-bottom:14px">
+      <div class="psField"><label>Senha *</label><input type="password" id="psUsrSenha" placeholder="Senha de acesso"/></div>
+      <div class="psField"><label>Perfil *</label><select id="psUsrPerfil"><option value="profissional">Profissional</option><option value="recepcao">Recepção</option><option value="admin">Administrador</option></select></div>
+    </div>
+    <div class="psField"><label>CRP / Registro</label><input type="text" id="psUsrCrp" placeholder="Ex: CRP 06/12345"/></div>
+    <div class="psMActions"><button class="psBtn psBtnS" onclick="psFecharModal('psMoUsuario')">Cancelar</button><button class="psBtn psBtnP" onclick="psSalvarUsuario()">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL AGENDAMENTO -->
+<div class="psMo" id="psMoAgenda">
+  <div class="psMb">
+    <div class="psMh"><h3>Agendar Consulta</h3><button class="psMClose" onclick="psFecharModal('psMoAgenda')">×</button></div>
+    <p class="psMSub">Preencha os dados da consulta</p>
+    <div class="psField" style="margin-bottom:14px"><label>Paciente *</label><select id="psAgPaciente"></select></div>
+    <div class="psFieldRow" style="margin-bottom:14px">
+      <div class="psField"><label>Data *</label><input type="date" id="psAgData" value="2026-04-11"/></div>
+      <div class="psField"><label>Horário *</label><select id="psAgHora"><option>08:00</option><option>09:00</option><option>09:30</option><option>10:00</option><option>10:30</option><option>11:00</option><option>13:00</option><option>14:00</option><option>14:30</option><option>15:00</option><option>16:00</option><option>17:00</option></select></div>
+    </div>
+    <div class="psField" style="margin-bottom:14px"><label>Tipo</label><select id="psAgTipo"><option>Sessão individual</option><option>Avaliação inicial</option><option>Sessão de casal</option><option>Sessão familiar</option><option>Sessão online</option></select></div>
+    <div class="psField"><label>Observação</label><input type="text" id="psAgObs" placeholder="Alguma observação..."/></div>
+    <div class="psMActions"><button class="psBtn psBtnS" onclick="psFecharModal('psMoAgenda')">Cancelar</button><button class="psBtn psBtnP" onclick="psSalvarAgenda()">Agendar</button></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════
+// DADOS
+// ═══════════════════════════════
+var PS_PLANOS = {
+  particular: {label:'Particular',       cls:'psBgParticular', cor:'#c9973a', convenio:false},
+  unimed:     {label:'Unimed',           cls:'psBgUnimed',     cor:'#1a6fa5', convenio:true},
+  amil:       {label:'Amil',            cls:'psBgAmil',       cor:'#5b3bcc', convenio:true},
+  bradesco:   {label:'Bradesco Saúde',  cls:'psBgBradesco',   cor:'#c0392b', convenio:true},
+  marinha:    {label:'Plano da Marinha',cls:'psBgMarinha',    cor:'#1a3a6a', convenio:true},
+  sulamerica: {label:'SulAmérica',      cls:'psBgSula',       cor:'#2e7d5a', convenio:false},
+  outro:      {label:'Outro convênio',  cls:'psBgOutro',      cor:'#6b6b5a', convenio:true}
+};
+function psEhConvenio(p){ return !!(PS_PLANOS[p] && PS_PLANOS[p].convenio); }
+
+var PS = {
+  usuarios:[
+    {id:'u1',nome:'Administrador',email:'admin@psiclinica.com',senha:'123456',perfil:'admin',espec:'Gestão',crp:'',cor:'#5b3bcc',iniciais:'AD'},
+    {id:'u2',nome:'Dra. Ana Souza',email:'dra.ana@psiclinica.com',senha:'123456',perfil:'profissional',espec:'Psicóloga Clínica',crp:'CRP 06/12345',cor:'#3d7065',iniciais:'AS'},
+    {id:'u3',nome:'Dr. Carlos Lima',email:'dr.carlos@psiclinica.com',senha:'123456',perfil:'profissional',espec:'Psicólogo TCC',crp:'CRP 06/67890',cor:'#1a6fa5',iniciais:'CL'},
+    {id:'u4',nome:'Fernanda Recepção',email:'recepcao@psiclinica.com',senha:'123456',perfil:'recepcao',espec:'Recepcionista',crp:'',cor:'#b87333',iniciais:'FR'},
+  ],
+  pacientes:[
+    {id:'p1',nome:'Mariana Costa',nasc:'1990-05-14',tel:'(11) 98000-1111',email:'mariana@email.com',psiId:'u2',dx:'Ansiedade generalizada',status:'ativo',plano:'unimed',cartao:'78612345',obs:'Prefere manhãs'},
+    {id:'p2',nome:'Rafael Mendes',nasc:'1985-11-03',tel:'(11) 97000-2222',email:'rafael@email.com',psiId:'u2',dx:'Fobia social — TCC',status:'ativo',plano:'particular',cartao:'',obs:''},
+    {id:'p3',nome:'Juliana Ferreira',nasc:'1995-03-22',tel:'(11) 96000-3333',email:'juliana@email.com',psiId:'u2',dx:'Depressão moderada',status:'ativo',plano:'amil',cartao:'AM4567',obs:'Enc. psiquiatra'},
+    {id:'p4',nome:'Pedro Alves',nasc:'2000-08-17',tel:'(11) 95000-4444',email:'pedro@email.com',psiId:'u3',dx:'Avaliação inicial',status:'espera',plano:'bradesco',cartao:'BD9012',obs:''},
+    {id:'p5',nome:'Sofia Rodrigues',nasc:'1998-01-30',tel:'(11) 94000-5555',email:'sofia@email.com',psiId:'u3',dx:'TOC — TCC',status:'ativo',plano:'sulamerica',cartao:'SA3456',obs:''},
+    {id:'p6',nome:'Bruno Lima',nasc:'1978-07-08',tel:'(11) 93000-6666',email:'bruno@email.com',psiId:'u3',dx:'Burnout',status:'ativo',plano:'particular',cartao:'',obs:'Só à tarde'},
+    {id:'p7',nome:'Carla Nunes',nasc:'1988-12-12',tel:'(11) 92000-7777',email:'carla@email.com',psiId:'u2',dx:'Luto',status:'inativo',plano:'unimed',cartao:'UN7890',obs:''},
+  ],
+  consultas:[
+    {id:'a1',pacId:'p1',data:'2026-04-11',hora:'08:00',tipo:'Sessão individual',status:'done'},
+    {id:'a2',pacId:'p2',data:'2026-04-11',hora:'09:30',tipo:'Sessão individual',status:'done'},
+    {id:'a3',pacId:'p3',data:'2026-04-11',hora:'11:00',tipo:'Sessão individual',status:'confirmed'},
+    {id:'a4',pacId:'p4',data:'2026-04-11',hora:'14:00',tipo:'Avaliação inicial',status:'confirmed'},
+    {id:'a5',pacId:'p5',data:'2026-04-11',hora:'16:00',tipo:'Sessão individual',status:'pending'},
+    {id:'a6',pacId:'p6',data:'2026-04-14',hora:'15:00',tipo:'Sessão individual',status:'confirmed'},
+    {id:'a7',pacId:'p1',data:'2026-04-15',hora:'08:00',tipo:'Sessão individual',status:'confirmed'},
+    {id:'a8',pacId:'p5',data:'2026-04-17',hora:'09:00',tipo:'Sessão individual',status:'confirmed'},
+  ],
+  relatorios:[
+    {id:'r1',pacId:'p1',autorId:'u2',data:'2026-04-04',titulo:'Sessão 13 — Reestruturação cognitiva',corpo:'Paciente apresentou melhora significativa. Trabalhamos registro de pensamentos. Menos episódios de ansiedade.',arquivos:[]},
+    {id:'r2',pacId:'p1',autorId:'u2',data:'2026-03-28',titulo:'Sessão 12 — Exposição gradual',corpo:'Hierarquia de exposição para situações sociais. Boa compreensão da técnica. Ansiedade 4/10.',arquivos:[{nome:'exercicio.pdf',tamanho:'210 KB',tipo:'pdf'}]},
+    {id:'r3',pacId:'p2',autorId:'u2',data:'2026-04-08',titulo:'Sessão 8 — Habilidades sociais',corpo:'Treinamento de habilidades sociais. Role-play. Progressão notável.',arquivos:[]},
+    {id:'r4',pacId:'p5',autorId:'u3',data:'2026-04-07',titulo:'Sessão 4 — EPR',corpo:'Exposição e prevenção de resposta. Ansiedade pico 7/10, retornou 3/10 sem compulsão.',arquivos:[{nome:'escala_yale.pdf',tamanho:'180 KB',tipo:'pdf'}]},
+  ],
+  pagamentos:[
+    {id:'py1',pacId:'p1',data:'2026-04-04',valor:0,plano:'unimed',forma:'Convênio',obs:'Sessão 13',status:'pendente'},
+    {id:'py2',pacId:'p2',data:'2026-04-08',valor:250,plano:'particular',forma:'PIX',obs:'Sessão 8',status:'recebido'},
+    {id:'py3',pacId:'p3',data:'2026-04-09',valor:0,plano:'amil',forma:'Convênio',obs:'Sem copagamento',status:'pendente'},
+    {id:'py4',pacId:'p5',data:'2026-04-07',valor:50,plano:'sulamerica',forma:'Cartão débito',obs:'Copagamento',status:'recebido'},
+    {id:'py5',pacId:'p6',data:'2026-04-05',valor:300,plano:'particular',forma:'Dinheiro',obs:'Sessão 11',status:'recebido'},
+    {id:'py6',pacId:'p2',data:'2026-04-11',valor:250,plano:'particular',forma:'PIX',obs:'Sessão hoje',status:'recebido'},
+    {id:'py7',pacId:'p1',data:'2026-04-11',valor:0,plano:'unimed',forma:'Convênio',obs:'Sessão hoje',status:'pendente'},
+    {id:'py8',pacId:'p1',data:'2026-03-28',valor:0,plano:'unimed',forma:'Convênio',obs:'Março',status:'pendente'},
+    {id:'py9',pacId:'p6',data:'2026-03-15',valor:300,plano:'particular',forma:'PIX',obs:'Março',status:'recebido'},
+    {id:'py10',pacId:'p2',data:'2026-03-10',valor:250,plano:'particular',forma:'PIX',obs:'Março',status:'recebido'},
+  ],
+};
+
+var psCU = null;
+var psPacienteAtual = null;
+var psRepPacId = null;
+var psPayPacId = null;
+var psEditUsrId = null;
+var psArquivosPendentes = [];
+var psCalData = new Date(2026,3,1);
+var psDiaSelecionado = 11;
+
+// ═══════════════════════════════
+// AUTH
+// ═══════════════════════════════
+function psPreencherLogin(email, senha) {
+  document.getElementById('psEmailInput').value = email;
+  document.getElementById('psSenhaInput').value = senha;
+}
+
+function psEntrar() {
+  var email = document.getElementById('psEmailInput').value.trim();
+  var senha = document.getElementById('psSenhaInput').value;
+  var usuario = null;
+  for (var i = 0; i < PS.usuarios.length; i++) {
+    if (PS.usuarios[i].email === email && PS.usuarios[i].senha === senha) {
+      usuario = PS.usuarios[i];
+      break;
+    }
+  }
+  if (!usuario) {
+    document.getElementById('psErrLogin').style.display = 'block';
+    return;
+  }
+  document.getElementById('psErrLogin').style.display = 'none';
+  psCU = usuario;
+  document.getElementById('psLoginScreen').style.display = 'none';
+  document.getElementById('psApp').classList.add('psVisible');
+  document.getElementById('psSbAvatar').textContent = usuario.iniciais;
+  document.getElementById('psSbAvatar').style.background = usuario.cor;
+  document.getElementById('psSbNome').textContent = usuario.nome;
+  var roles = {admin:'Administrador', profissional:'Profissional', recepcao:'Recepção'};
+  document.getElementById('psSbRole').textContent = roles[usuario.perfil] || usuario.perfil;
+  psConstruirNav();
+  var navs = psGetNavs();
+  psIrPara(navs[0].id);
+}
+
+function psSair() {
+  psCU = null;
+  document.getElementById('psApp').classList.remove('psVisible');
+  document.getElementById('psLoginScreen').style.display = 'flex';
+  document.getElementById('psMainInner').innerHTML = '';
+}
+
+// ═══════════════════════════════
+// NAVEGAÇÃO
+// ═══════════════════════════════
+var PS_ICONES = {
+  grid: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="5.5" height="5.5" rx="1"/><rect x="9.5" y="1" width="5.5" height="5.5" rx="1"/><rect x="1" y="9.5" width="5.5" height="5.5" rx="1"/><rect x="9.5" y="9.5" width="5.5" height="5.5" rx="1"/></svg>',
+  users: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.8 2.2-5 5-5M11 10v4M13 12h-4"/></svg>',
+  cal: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="2"/><path d="M5 1v2M11 1v2M1 6h14"/></svg>',
+  chart: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6"/><rect x="1" y="1" width="14" height="14" rx="2"/></svg>',
+  shield: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1L2 3v5c0 3.3 2.5 6.1 6 7 3.5-.9 6-3.7 6-7V3L8 1z"/></svg>',
+  money: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="14" height="9" rx="2"/><path d="M8 7v3M5 10h6M1 7h14"/></svg>',
+};
+
+var PS_NAVS = {
+  admin:[
+    {id:'painel',label:'Painel',icone:'grid'},
+    {id:'pacientes',label:'Pacientes',icone:'users'},
+    {id:'agenda',label:'Agenda',icone:'cal'},
+    {id:'financeiro',label:'Financeiro',icone:'money'},
+    {id:'relatorios',label:'Relatórios',icone:'chart'},
+    {id:'usuarios',label:'Usuários',icone:'shield'},
+  ],
+  profissional:[
+    {id:'painel',label:'Painel',icone:'grid'},
+    {id:'meuspac',label:'Meus Pacientes',icone:'users'},
+    {id:'agenda',label:'Agenda',icone:'cal'},
+  ],
+  recepcao:[
+    {id:'painel',label:'Painel',icone:'grid'},
+    {id:'pacientes',label:'Pacientes',icone:'users'},
+    {id:'agenda',label:'Agenda',icone:'cal'},
+    {id:'caixa',label:'Caixa do Dia',icone:'money'},
+  ],
+};
+
+function psGetNavs() {
+  return PS_NAVS[psCU.perfil] || [];
+}
+
+function psConstruirNav() {
+  var navs = psGetNavs();
+  var html = '';
+  for (var i = 0; i < navs.length; i++) {
+    var n = navs[i];
+    html += '<div class="psNavItem" id="psNav-' + n.id + '" onclick="psIrPara(\'' + n.id + '\')">' + (PS_ICONES[n.icone]||'') + ' ' + n.label + '</div>';
+  }
+  document.getElementById('psSbNav').innerHTML = html;
+}
+
+function psIrPara(pid) {
+  var items = document.querySelectorAll('.psNavItem');
+  for (var i = 0; i < items.length; i++) items[i].classList.remove('psActive');
+  var el = document.getElementById('psNav-' + pid);
+  if (el) el.classList.add('psActive');
+  psMontarPagina(pid);
+}
+
+// ═══════════════════════════════
+// PÁGINAS
+// ═══════════════════════════════
+function psMontarPagina(pid) {
+  var mi = document.getElementById('psMainInner');
+  if (pid === 'painel')     { mi.innerHTML = psPaginaPainel(); }
+  else if (pid === 'pacientes')  { mi.innerHTML = psPaginaPacientes(); psRenderPacientes(); }
+  else if (pid === 'meuspac')    { mi.innerHTML = psPaginaMeusPac(); psMontarListaPac(); }
+  else if (pid === 'agenda')     { mi.innerHTML = psPaginaAgenda(); psMontarCalendario(); }
+  else if (pid === 'financeiro') { mi.innerHTML = psPaginaFinanceiro(); setTimeout(psMontarGraficoPizza, 80); }
+  else if (pid === 'caixa')      { mi.innerHTML = psPaginaCaixa(); psRenderCaixa(); }
+  else if (pid === 'relatorios') { mi.innerHTML = psPaginaRelatorios(); }
+  else if (pid === 'usuarios')   { mi.innerHTML = psPaginaUsuarios(); psRenderUsuarios(); }
+}
+
+// PAINEL
+function psPaginaPainel() {
+  var hoje = '2026-04-11';
+  var pacs = psCU.perfil === 'profissional' ? PS.pacientes.filter(function(p){ return p.psiId === psCU.id; }) : PS.pacientes;
+  var ativos = pacs.filter(function(p){ return p.status === 'ativo'; }).length;
+  var espera = pacs.filter(function(p){ return p.status === 'espera'; }).length;
+  var consultasHoje = PS.consultas.filter(function(a){
+    if (a.data !== hoje) return false;
+    if (psCU.perfil === 'profissional') {
+      var p = psPacPorId(a.pacId);
+      return p && p.psiId === psCU.id;
+    }
+    return true;
+  });
+  var pagHoje = PS.pagamentos.filter(function(p){ return p.data === hoje; });
+  var pagMes = PS.pagamentos.filter(function(p){ return p.data.indexOf('2026-04') === 0; });
+  var totalHoje = pagHoje.reduce(function(s,p){ return s+p.valor; }, 0);
+  var totalMes = pagMes.reduce(function(s,p){ return s+p.valor; }, 0);
+
+  var statsHtml = '';
+  if (psCU.perfil === 'admin') {
+    statsHtml = '<div class="psGrid4" style="margin-bottom:20px">' +
+      '<div class="psStat psStatSage"><div class="psStatL">Pacientes ativos</div><div class="psStatV">' + ativos + '</div><div class="psStatS">em atendimento</div></div>' +
+      '<div class="psStat"><div class="psStatL">Consultas hoje</div><div class="psStatV">' + consultasHoje.length + '</div><div class="psStatS">' + consultasHoje.filter(function(a){ return a.status==='done'; }).length + ' concluídas</div></div>' +
+      '<div class="psStat psStatGold"><div class="psStatL">Receita hoje</div><div class="psStatV">R$ ' + psFmtVal(totalHoje) + '</div><div class="psStatS">' + pagHoje.length + ' pagamentos</div></div>' +
+      '<div class="psStat psStatGreen"><div class="psStatL">Receita do mês</div><div class="psStatV">R$ ' + psFmtVal(totalMes) + '</div><div class="psStatS">abril 2026</div></div>' +
+      '</div>';
+  } else if (psCU.perfil === 'recepcao') {
+    statsHtml = '<div class="psGrid3" style="margin-bottom:20px">' +
+      '<div class="psStat psStatSage"><div class="psStatL">Consultas hoje</div><div class="psStatV">' + consultasHoje.length + '</div><div class="psStatS">' + consultasHoje.filter(function(a){ return a.status==='done'; }).length + ' concluídas</div></div>' +
+      '<div class="psStat psStatGreen"><div class="psStatL">Recebido hoje</div><div class="psStatV">R$ ' + psFmtVal(totalHoje) + '</div><div class="psStatS">fechamento de caixa</div></div>' +
+      '<div class="psStat"><div class="psStatL">Lista de espera</div><div class="psStatV">' + espera + '</div><div class="psStatS">aguardando vaga</div></div>' +
+      '</div>';
+  } else {
+    statsHtml = '<div class="psGrid4" style="margin-bottom:20px">' +
+      '<div class="psStat psStatSage"><div class="psStatL">Meus pacientes</div><div class="psStatV">' + ativos + '</div></div>' +
+      '<div class="psStat"><div class="psStatL">Consultas hoje</div><div class="psStatV">' + consultasHoje.length + '</div></div>' +
+      '<div class="psStat"><div class="psStatL">Lista de espera</div><div class="psStatV">' + espera + '</div></div>' +
+      '<div class="psStat"><div class="psStatL">Sessões no mês</div><div class="psStatV">61</div></div>' +
+      '</div>';
+  }
+
+  var stMap = {done:['Concluída','psBgDone'], confirmed:['Confirmada','psBgConf'], pending:['Pendente','psBgPend']};
+  var linhas = consultasHoje.map(function(a) {
+    var p = psPacPorId(a.pacId);
+    var pl = PS_PLANOS[p ? p.plano : 'particular'] || PS_PLANOS.particular;
+    var st = stMap[a.status] || ['—',''];
+    return '<div class="psApptItem">' +
+      '<div style="font-size:11px;font-weight:500;color:var(--ink2);min-width:38px">' + a.hora + '</div>' +
+      '<div style="flex:1"><div style="font-size:13px;font-weight:500">' + (p ? p.nome : '—') + '</div><div style="font-size:11px;color:var(--ink3);margin-top:1px">' + a.tipo + '</div></div>' +
+      '<span class="psBadge ' + pl.cls + '">' + pl.label + '</span>' +
+      '<span class="psBadge ' + st[1] + '" style="margin-left:6px">' + st[0] + '</span></div>';
+  }).join('');
+
+  return '<div>' +
+    '<div class="psPhdr"><div class="psPhdrLeft"><h2>Painel</h2><p>Bem-vindo, ' + psCU.nome.split(' ').slice(0,2).join(' ') + ' — sábado, 11 de abril de 2026</p></div></div>' +
+    statsHtml +
+    '<div class="psCard"><div class="psCt">Consultas de hoje — 11/04/2026</div>' +
+    (consultasHoje.length ? linhas : '<p style="color:var(--ink3);font-size:13px;padding:20px 0;text-align:center">Nenhuma consulta agendada para hoje</p>') +
+    '</div></div>';
+}
+
+// PACIENTES
+function psPaginaPacientes() {
+  return '<div>' +
+    '<div class="psPhdr"><div class="psPhdrLeft"><h2>Pacientes</h2><p>Cadastro e controle de todos os pacientes</p></div>' +
+    '<div style="display:flex;gap:8px"><button class="psBtn psBtnP" onclick="psAbrirPagamento(null)">💰 Pagamento</button><button class="psBtn psBtnP" onclick="psAbrirPaciente()">+ Novo paciente</button></div></div>' +
+    '<div style="display:flex;gap:10px;margin-bottom:16px"><input type="text" id="psPacSearch" placeholder="Buscar por nome, plano, diagnóstico..." oninput="psRenderPacientes()" style="flex:1;border:1px solid var(--bdr);border-radius:var(--rs);padding:9px 14px;font-size:13px;background:var(--w);outline:none"/></div>' +
+    '<div class="psTw"><table class="psTbl"><thead><tr><th>Paciente</th><th>Psicólogo</th><th>Plano</th><th>Diagnóstico</th><th>Próxima sessão</th><th>Status</th><th></th></tr></thead><tbody id="psPacTbody"></tbody></table></div>' +
+    '</div>';
+}
+
+function psRenderPacientes() {
+  var q = (document.getElementById('psPacSearch') || {}).value || '';
+  var list = PS.pacientes.filter(function(p) {
+    return p.nome.toLowerCase().indexOf(q.toLowerCase()) >= 0 ||
+           p.dx.toLowerCase().indexOf(q.toLowerCase()) >= 0 ||
+           ((PS_PLANOS[p.plano]||{}).label||'').toLowerCase().indexOf(q.toLowerCase()) >= 0;
+  });
+  var tb = document.getElementById('psPacTbody');
+  if (!tb) return;
+  var hoje = '2026-04-11';
+  var bmap = {ativo:'psBgAtivo',espera:'psBgEspera',inativo:'psBgInativo'};
+  var blbl = {ativo:'Ativo',espera:'Espera',inativo:'Inativo'};
+  tb.innerHTML = list.map(function(p) {
+    var psi = psUsrPorId(p.psiId);
+    var ini = p.nome.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
+    var nxt = PS.consultas.filter(function(a){ return a.pacId===p.id && a.data>=hoje && a.status!=='done'; }).sort(function(a,b){ return a.data.localeCompare(b.data); })[0];
+    var ns = nxt ? psFmtData(nxt.data) + ', ' + nxt.hora : '—';
+    var pl = PS_PLANOS[p.plano] || PS_PLANOS.particular;
+    return '<tr>' +
+      '<td><span class="psAv" style="background:' + (psi?psi.cor:'#aaa') + '">' + ini + '</span>' + p.nome + '</td>' +
+      '<td style="font-size:12px;color:var(--ink2)">' + (psi?psi.nome:'—') + '</td>' +
+      '<td><span class="psBadge ' + pl.cls + '">' + pl.label + '</span></td>' +
+      '<td style="font-size:12px;color:var(--ink2)">' + (p.dx||'—') + '</td>' +
+      '<td style="font-size:12px">' + ns + '</td>' +
+      '<td><span class="psBadge ' + (bmap[p.status]||'') + '">' + (blbl[p.status]||p.status) + '</span></td>' +
+      '<td style="display:flex;gap:5px"><button class="psBtn psBtnS psBtnXs" onclick="psAbrirPagamentoPac(\'' + p.id + '\')">Pagamento</button><button class="psBtn psBtnS psBtnXs" onclick="psAbrirAgendamento(\'' + p.id + '\')">Agendar</button><button class="psBtn psBtnS psBtnXs" onclick="psEditarPaciente(\'' + p.id + '\')">Editar</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+// MEUS PACIENTES
+function psPaginaMeusPac() {
+  return '<div>' +
+    '<div class="psPhdr"><div class="psPhdrLeft"><h2>Meus Pacientes</h2><p>Prontuário, relatórios e histórico de sessões</p></div></div>' +
+    '<div class="psPtLayout">' +
+    '<div class="psPtPanel"><div class="psPtSearch"><input type="text" id="psMpSearch" placeholder="Buscar paciente..." oninput="psMontarListaPac()" style="width:100%;border:1px solid var(--bdr);border-radius:var(--rs);padding:8px 12px;font-size:12.5px;background:var(--warm);outline:none"/></div><div class="psPtList" id="psPtList"></div></div>' +
+    '<div class="psPtDetail" id="psPtDetail"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;color:var(--ink3);gap:10px"><div style="font-size:40px;opacity:.3">👤</div><p style="font-size:13px">Selecione um paciente</p></div></div>' +
+    '</div></div>';
+}
+
+function psMontarListaPac() {
+  var q = (document.getElementById('psMpSearch')||{}).value||'';
+  var list = PS.pacientes.filter(function(p){ return p.psiId===psCU.id && p.nome.toLowerCase().indexOf(q.toLowerCase())>=0; });
+  var el = document.getElementById('psPtList');
+  if (!el) return;
+  el.innerHTML = list.map(function(p) {
+    var ini = p.nome.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
+    var pl = PS_PLANOS[p.plano]||PS_PLANOS.particular;
+    return '<div class="psPtItem' + (psPacienteAtual===p.id?' psActive':'') + '" onclick="psSelecionarPac(\'' + p.id + '\')">' +
+      '<div class="psAv" style="background:' + psCU.cor + ';width:32px;height:32px;font-size:11px;margin-right:0">' + ini + '</div>' +
+      '<div><div style="font-size:13px;font-weight:500;color:var(--ink)">' + p.nome + '</div><div style="font-size:11px;color:var(--ink3);margin-top:1px">' + pl.label + ' · ' + (p.dx||'—') + '</div></div>' +
+      '</div>';
+  }).join('');
+}
+
+function psSelecionarPac(pid) {
+  psPacienteAtual = pid;
+  psMontarListaPac();
+  psRenderDetalhe(pid);
+}
+
+function psRenderDetalhe(pid) {
+  var p = psPacPorId(pid);
+  if (!p) return;
+  var ini = p.nome.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
+  var reps = PS.relatorios.filter(function(r){ return r.pacId===pid; }).sort(function(a,b){ return b.data.localeCompare(a.data); });
+  var pags = PS.pagamentos.filter(function(x){ return x.pacId===pid; });
+  var totalPago = pags.reduce(function(s,x){ return s+x.valor; }, 0);
+  var pl = PS_PLANOS[p.plano]||PS_PLANOS.particular;
+  var bmap = {ativo:'psBgAtivo',espera:'psBgEspera',inativo:'psBgInativo'};
+  var blbl = {ativo:'Ativo',espera:'Espera',inativo:'Inativo'};
+
+  var tlHtml = reps.length ? reps.map(function(r) {
+    var fh = r.arquivos && r.arquivos.length ? '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">' + r.arquivos.map(function(f){ return '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--warm);border:1px solid var(--bdr2);border-radius:20px;font-size:11px;color:var(--ink2)">' + psIcoArq(f.tipo) + ' ' + f.nome + ' (' + f.tamanho + ')</span>'; }).join('') + '</div>' : '';
+    return '<div class="psTlItem"><div class="psTlLine"><div class="psTlDot"></div><div class="psTlLn"></div></div>' +
+      '<div class="psTlContent"><div class="psTlDate">' + psFmtData(r.data) + ' — ' + r.titulo + '</div>' +
+      '<div class="psTlCard"><div class="psTlBody">' + r.corpo + '</div>' + fh + '</div></div></div>';
+  }).join('') : '<p style="color:var(--ink3);font-size:13px;padding:12px 0">Nenhum relatório registrado ainda.</p>';
+
+  var pagsHtml = pags.length ? pags.slice(-3).reverse().map(function(x){
+    return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--bdr2)">' +
+      '<span>' + psFmtData(x.data) + ' — ' + x.obs + '</span>' +
+      '<span style="color:var(--green);font-weight:500">R$ ' + psFmtVal(x.valor) + '</span></div>';
+  }).join('') : '';
+
+  document.getElementById('psPtDetail').innerHTML =
+    '<div style="display:flex;align-items:center;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--bdr2);margin-bottom:18px">' +
+    '<div style="width:54px;height:54px;border-radius:50%;background:' + psCU.cor + ';display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0">' + ini + '</div>' +
+    '<div style="flex:1"><h3 style="font-size:20px">' + p.nome + '</h3><div style="font-size:12px;color:var(--ink3);margin-top:4px">' + (p.dx||'—') + '</div>' +
+    '<div style="margin-top:6px;display:flex;gap:6px"><span class="psBadge ' + (bmap[p.status]||'') + '">' + (blbl[p.status]||p.status) + '</span><span class="psBadge ' + pl.cls + '">' + pl.label + '</span></div></div>' +
+    '<button class="psBtn psBtnP psBtnSm" onclick="psAbrirRelatorio(\'' + pid + '\')">+ Relatório</button></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:16px">' +
+    '<div><label style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)">Telefone</label><p style="font-size:13px;margin-top:2px">' + (p.tel||'—') + '</p></div>' +
+    '<div><label style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)">E-mail</label><p style="font-size:13px;margin-top:2px">' + (p.email||'—') + '</p></div>' +
+    '<div><label style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)">Plano</label><p style="font-size:13px;margin-top:2px">' + pl.label + (p.cartao?' ('+p.cartao+')':'') + '</p></div>' +
+    '<div><label style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)">Observações</label><p style="font-size:13px;margin-top:2px">' + (p.obs||'—') + '</p></div>' +
+    '</div>' +
+    (pags.length ? '<div class="psDivider"></div><div class="psSectionTitle"><span>Pagamentos — total R$ ' + psFmtVal(totalPago) + '</span></div>' + pagsHtml + '<br>' : '') +
+    '<div class="psDivider"></div><div class="psSectionTitle"><span>Prontuário — ' + reps.length + ' relatório(s)</span></div>' +
+    '<div>' + tlHtml + '</div>';
+}
+
+// AGENDA
+function psPaginaAgenda() {
+  return '<div>' +
+    '<div class="psPhdr"><div class="psPhdrLeft"><h2>Agenda</h2><p>Consultas e compromissos</p></div><button class="psBtn psBtnP" onclick="psAbrirAgendamento(null)">+ Agendar consulta</button></div>' +
+    '<div class="psAgendaLayout">' +
+    '<div class="psCard" style="padding:18px">' +
+    '<div class="psCt" style="margin-bottom:10px">Calendário</div>' +
+    '<div class="psCalNavRow"><button style="background:none;border:1px solid var(--bdr);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--ink2)" onclick="psCalMudar(-1)">‹</button><span id="psCalLabel" style="font-size:13px;font-weight:500"></span><button style="background:none;border:1px solid var(--bdr);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--ink2)" onclick="psCalMudar(1)">›</button></div>' +
+    '<div class="psCalGrid" id="psCalGrid"></div>' +
+    '<div class="psDivider"></div>' +
+    '<div class="psSectionTitle"><span id="psCalDiaLabel">Consultas do dia</span><button class="psBtn psBtnS psBtnXs" onclick="psAbrirAgendamento(null)">+ Nova</button></div>' +
+    '<div id="psCalConsultas"></div>' +
+    '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:16px">' +
+    '<div class="psCard"><div class="psCt">Esta semana</div><div id="psSemanaSumario"></div></div>' +
+    '<div class="psCard"><div class="psCt">Resumo</div><div id="psSemanaResumo" style="display:flex;gap:12px"></div></div>' +
+    '</div></div></div>';
+}
+
+function psMontarCalendario() {
+  var meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var lbl = document.getElementById('psCalLabel');
+  if (lbl) lbl.textContent = meses[psCalData.getMonth()] + ' ' + psCalData.getFullYear();
+  var grid = document.getElementById('psCalGrid');
+  if (!grid) return;
+  var y = psCalData.getFullYear(), m = psCalData.getMonth();
+  var html = dias.map(function(d){ return '<div class="psCalDl">' + d + '</div>'; }).join('');
+  var first = new Date(y,m,1).getDay();
+  var dim = new Date(y,m+1,0).getDate();
+  var prev = new Date(y,m,0).getDate();
+  for (var i=0; i<first; i++) html += '<div class="psCalDay psOther">' + (prev-first+i+1) + '</div>';
+  for (var d=1; d<=dim; d++) {
+    var ds = y + '-' + psStr2(m+1) + '-' + psStr2(d);
+    var isT = (y===2026 && m===3 && d===11);
+    var isSel = (d===psDiaSelecionado && m===psCalData.getMonth());
+    var hasEv = PS.consultas.some(function(a){ return a.data===ds; });
+    html += '<div class="psCalDay' + (isT?' psToday':'') + (isSel&&!isT?' psSel':'') + (hasEv?' psHasEv':'') + '" onclick="psDiaCal(' + d + ')">' + d + '</div>';
+  }
+  grid.innerHTML = html;
+  psRenderDiaConsultas();
+  psRenderSemana();
+}
+
+function psCalMudar(dir) { psCalData.setMonth(psCalData.getMonth()+dir); psMontarCalendario(); }
+function psDiaCal(d) { psDiaSelecionado = d; psMontarCalendario(); }
+
+function psRenderDiaConsultas() {
+  var y = psCalData.getFullYear(), m = psCalData.getMonth();
+  var ds = y + '-' + psStr2(m+1) + '-' + psStr2(psDiaSelecionado);
+  var lbl = document.getElementById('psCalDiaLabel');
+  if (lbl) lbl.textContent = psDiaSelecionado + '/' + (m+1) + '/' + y;
+  var apts = PS.consultas.filter(function(a){
+    if (a.data !== ds) return false;
+    if (psCU.perfil === 'profissional') { var p = psPacPorId(a.pacId); return p && p.psiId===psCU.id; }
+    return true;
+  }).sort(function(a,b){ return a.hora.localeCompare(b.hora); });
+  var el = document.getElementById('psCalConsultas');
+  if (!el) return;
+  if (!apts.length) { el.innerHTML = '<p style="color:var(--ink3);font-size:13px;padding:12px 0;text-align:center">Sem consultas neste dia</p>'; return; }
+  var stMap = {done:['Concluída','psBgDone'],confirmed:['Confirmada','psBgConf'],pending:['Pendente','psBgPend']};
+  el.innerHTML = apts.map(function(a) {
+    var p = psPacPorId(a.pacId);
+    var st = stMap[a.status]||['—',''];
+    return '<div class="psApptItem"><div style="font-size:11px;font-weight:500;color:var(--ink2);min-width:38px">' + a.hora + '</div>' +
+      '<div style="flex:1"><div style="font-size:13px;font-weight:500">' + (p?p.nome:'—') + '</div><div style="font-size:11px;color:var(--ink3);margin-top:1px">' + a.tipo + '</div></div>' +
+      '<span class="psBadge ' + st[1] + '">' + st[0] + '</span></div>';
+  }).join('');
+}
+
+function psRenderSemana() {
+  var wDays = ['Seg 13','Ter 14','Qua 15','Qui 16','Sex 17'];
+  var wDates = ['2026-04-13','2026-04-14','2026-04-15','2026-04-16','2026-04-17'];
+  var el = document.getElementById('psSemanaSumario');
+  if (el) {
+    el.innerHTML = wDates.map(function(d,i){
+      var n = PS.consultas.filter(function(a){ return a.data===d; }).length;
+      return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid var(--bdr2)">' +
+        '<span style="color:var(--ink2)">' + wDays[i] + '</span>' +
+        '<span style="color:' + (n?'var(--ink)':'var(--ink3)') + '">' + (n ? n+' consulta'+(n>1?'s':'') : '—') + '</span></div>';
+    }).join('');
+  }
+  var tot = PS.consultas.filter(function(a){ return a.data>='2026-04-13'&&a.data<='2026-04-17'; }).length;
+  var er = document.getElementById('psSemanaResumo');
+  if (er) {
+    er.innerHTML = '<div style="flex:1;text-align:center;padding:10px;background:var(--sage-l);border-radius:8px"><div style="font-size:22px;font-family:DM Serif Display,serif;color:var(--sage)">' + tot + '</div><div style="font-size:10.5px;color:var(--ink2);margin-top:2px">consultas</div></div>' +
+      '<div style="flex:1;text-align:center;padding:10px;background:var(--acc-l);border-radius:8px"><div style="font-size:22px;font-family:DM Serif Display,serif;color:var(--acc)">' + PS.pacientes.filter(function(p){ return p.status==='espera'; }).length + '</div><div style="font-size:10.5px;color:var(--ink2);margin-top:2px">em espera</div></div>';
+  }
+}
+
+// FINANCEIRO
+function psPaginaFinanceiro() {
+  var pags = PS.pagamentos;
+  var pagMes = pags.filter(function(p){ return p.data.indexOf('2026-04')===0; });
+  var pagHoje = pags.filter(function(p){ return p.data==='2026-04-11'; });
+  var total = pags.filter(function(p){ return p.status!=='pendente'; }).reduce(function(s,p){ return s+p.valor; },0);
+  var totalMes = pagMes.filter(function(p){ return p.status!=='pendente'; }).reduce(function(s,p){ return s+p.valor; },0);
+  var totalHoje = pagHoje.filter(function(p){ return p.status!=='pendente'; }).reduce(function(s,p){ return s+p.valor; },0);
+  var pendenteMes = pagMes.filter(function(p){ return p.status==='pendente'; }).length;
+
+  var byPlano = {};
+  Object.keys(PS_PLANOS).forEach(function(k){ byPlano[k] = pagMes.filter(function(p){ return p.plano===k; }).reduce(function(s,x){ return s+x.valor; },0); });
+
+  var meses = [{m:'Jan',d:'2026-01'},{m:'Fev',d:'2026-02'},{m:'Mar',d:'2026-03'},{m:'Abr',d:'2026-04'}];
+  var mTot = meses.map(function(x){ return {m:x.m,d:x.d,v:pags.filter(function(p){ return p.data.indexOf(x.d)===0; }).reduce(function(s,p){ return s+p.valor; },0)}; });
+  var maxV = Math.max.apply(null, mTot.map(function(x){ return x.v; }).concat([1]));
+  var barsHtml = mTot.map(function(x){
+    return '<div class="psBarCol"><div class="psBarVal">R$ ' + (x.v/1000).toFixed(1) + 'k</div>' +
+      '<div class="psBarFill" style="height:' + Math.round(x.v/maxV*110) + 'px;background:' + (x.d==='2026-04'?'var(--acc)':'var(--sage)') + '"></div>' +
+      '<div class="psBarLbl">' + x.m + '</div></div>';
+  }).join('');
+
+  var linhasPlano = Object.keys(PS_PLANOS).map(function(k){
+    var v = byPlano[k]||0;
+    var cnt = pagMes.filter(function(p){ return p.plano===k; }).length;
+    return '<div style="padding:14px;background:var(--warm);border-radius:10px;border:1px solid var(--bdr2)">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span class="psBadge ' + PS_PLANOS[k].cls + '">' + PS_PLANOS[k].label + '</span><span style="font-size:11px;color:var(--ink3)">' + cnt + ' pag.</span></div>' +
+      '<div style="font-size:20px;font-family:DM Serif Display,serif;color:var(--ink)">R$ ' + psFmtVal(v) + '</div></div>';
+  }).join('');
+
+  var rows = pagMes.sort(function(a,b){ return b.data.localeCompare(a.data); }).map(function(x){
+    var p = psPacPorId(x.pacId);
+    var pl = PS_PLANOS[x.plano]||PS_PLANOS.particular;
+    var isPend = x.status==='pendente';
+    return '<tr><td>' + psFmtData(x.data) + '</td><td>' + (p?p.nome:'—') + '</td><td><span class="psBadge ' + pl.cls + '">' + pl.label + '</span></td><td>' + x.forma + '</td><td>' + x.obs + '</td>' +
+      '<td style="color:' + (isPend?'var(--acc)':'var(--green)') + ';font-weight:500">' + (isPend ? '— (pendente)' : 'R$ ' + psFmtVal(x.valor)) + '</td>' +
+      '<td><span class="psBadge ' + (isPend?'psBgEspera':'psBgAtivo') + '">' + (isPend?'A receber':'Recebido') + '</span></td></tr>';
+  }).join('');
+
+  return '<div>' +
+    '<div class="psPhdr"><div class="psPhdrLeft"><h2>Financeiro</h2><p>Receitas, planos e pagamentos</p></div>' +
+    '<div style="display:flex;gap:8px"><button class="psBtn psBtnP" onclick="psAbrirPagamento(null)">+ Pagamento</button><button class="psBtn psBtnS" onclick="psExportarCSV()">⬇ CSV</button><button class="psBtn psBtnS" onclick="psImprimir()">🖨 Imprimir</button></div></div>' +
+    '<div class="psGrid4" style="margin-bottom:20px">' +
+    '<div class="psStat psStatGreen"><div class="psStatL">Receita total</div><div class="psStatV">R$ ' + psFmtVal(total) + '</div><div class="psStatS">acumulado geral</div></div>' +
+    '<div class="psStat psStatSage"><div class="psStatL">Receita do mês</div><div class="psStatV">R$ ' + psFmtVal(totalMes) + '</div><div class="psStatS">abril 2026</div></div>' +
+    '<div class="psStat psStatGold"><div class="psStatL">Receita de hoje</div><div class="psStatV">R$ ' + psFmtVal(totalHoje) + '</div><div class="psStatS">' + pagHoje.length + ' pagamentos</div></div>' +
+    '<div class="psStat psStatBlue"><div class="psStatL">A receber (convênio)</div><div class="psStatV">' + pendenteMes + '</div><div class="psStatS">atendimentos pendentes</div></div>' +
+    '</div>' +
+    '<div class="psGrid2" style="margin-bottom:20px">' +
+    '<div class="psCard"><div class="psCt">Receita por mês (2026)</div><div class="psBarChart">' + barsHtml + '</div></div>' +
+    '<div class="psCard"><div class="psCt">Por plano — Abril 2026</div><div style="display:flex;align-items:center;gap:24px"><canvas id="psPieCanvas" width="160" height="160" style="flex-shrink:0"></canvas><div class="psPieLegend" id="psPieLegend"></div></div></div>' +
+    '</div>' +
+    '<div class="psCard" style="margin-bottom:20px"><div class="psCt">Resumo por plano — Abril 2026</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">' + linhasPlano + '</div></div>' +
+    '<div class="psCard"><div class="psCt">Histórico de pagamentos — Abril 2026</div><div class="psTw" style="border:none"><table class="psTbl"><thead><tr><th>Data</th><th>Paciente</th><th>Plano</th><th>Forma</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>' +
+    '</div>';
+}
+
+function psMontarGraficoPizza() {
+  var canvas = document.getElementById('psPieCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var pagMes = PS.pagamentos.filter(function(p){ return p.data.indexOf('2026-04')===0; });
+  var entries = Object.keys(PS_PLANOS).map(function(k){
+    return {k:k, v:pagMes.filter(function(p){ return p.plano===k; }).reduce(function(s,x){ return s+x.valor; },0)};
+  }).filter(function(e){ return e.v>0; });
+  var total = entries.reduce(function(s,e){ return s+e.v; },0);
+  if (!total) return;
+  var start = -Math.PI/2;
+  entries.forEach(function(e) {
+    var slice = (e.v/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(80,80); ctx.arc(80,80,75,start,start+slice); ctx.closePath();
+    ctx.fillStyle = PS_PLANOS[e.k].cor; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    start += slice;
+  });
+  ctx.beginPath(); ctx.arc(80,80,30,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+  ctx.fillStyle='var(--ink)'; ctx.font='12px DM Sans'; ctx.textAlign='center';
+  ctx.fillText('R$ ' + (total/1000).toFixed(1) + 'k', 80, 84);
+  var leg = document.getElementById('psPieLegend');
+  if (leg) {
+    leg.innerHTML = entries.map(function(e){
+      return '<div class="psPieLegItem"><div class="psPieDot" style="background:' + PS_PLANOS[e.k].cor + '"></div><span style="color:var(--ink2);flex:1">' + PS_PLANOS[e.k].label + '</span><span style="font-weight:500">R$ ' + psFmtVal(e.v) + '</span></div>';
+    }).join('');
+  }
+}
+
+// CAIXA
+function psPaginaCaixa() {
+  return '<div>' +
+    '<div class="psPhdr"><div class="psPhdrLeft"><h2>Caixa do Dia</h2><p>Fechamento e pagamentos do dia — 11/04/2026</p></div>' +
+    '<div style="display:flex;gap:8px"><button class="psBtn psBtnP" onclick="psAbrirPagamento(null)">+ Registrar pagamento</button><button class="psBtn psBtnS" onclick="psImprimir()">🖨 Imprimir</button></div></div>' +
+    '<div class="psCard" style="margin-bottom:20px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);margin-bottom:8px">Total recebido hoje</div><div style="font-size:42px;font-family:DM Serif Display,serif;color:var(--sage)" id="psCxTotal">R$ 0,00</div><div style="font-size:13px;color:var(--ink2);margin-top:6px" id="psCxSub"></div></div>' +
+    '<div class="psGrid3" style="margin-bottom:20px" id="psCxPlanos"></div>' +
+    '<div class="psCard"><div class="psCt">Pagamentos do dia</div><div id="psCxLista"></div></div>' +
+    '</div>';
+}
+
+function psRenderCaixa() {
+  var hoje = '2026-04-11';
+  var pags = PS.pagamentos.filter(function(p){ return p.data===hoje; });
+  var pagsRecebidos = pags.filter(function(p){ return p.status!=='pendente'; });
+  var pagsPendentes = pags.filter(function(p){ return p.status==='pendente'; });
+  var total = pagsRecebidos.reduce(function(s,p){ return s+p.valor; },0);
+  var tt = document.getElementById('psCxTotal');
+  if (tt) tt.textContent = 'R$ ' + psFmtVal(total);
+  var sb = document.getElementById('psCxSub');
+  if (sb) sb.textContent = pagsRecebidos.length + ' pagamento' + (pagsRecebidos.length!==1?'s':'') + ' recebido' + (pagsRecebidos.length!==1?'s':'') + (pagsPendentes.length?' · ' + pagsPendentes.length + ' convênio(s) a cobrar':'');
+  var plEl = document.getElementById('psCxPlanos');
+  if (plEl) {
+    var byPl = {};
+    Object.keys(PS_PLANOS).forEach(function(k){ byPl[k]=pags.filter(function(p){ return p.plano===k; }).reduce(function(s,x){ return s+x.valor; },0); });
+    plEl.innerHTML = Object.keys(byPl).filter(function(k){ return byPl[k]>0; }).map(function(k){
+      return '<div class="psStat"><div class="psStatL">' + PS_PLANOS[k].label + '</div><div class="psStatV" style="font-size:20px">R$ ' + psFmtVal(byPl[k]) + '</div><div class="psStatS">' + pags.filter(function(p){ return p.plano===k; }).length + ' pagamento(s)</div></div>';
+    }).join('');
+  }
+  var lista = document.getElementById('psCxLista');
+  if (!lista) return;
+  if (!pags.length) { lista.innerHTML = '<p style="color:var(--ink3);font-size:13px;padding:20px;text-align:center">Nenhum pagamento registrado hoje</p>'; return; }
+  lista.innerHTML = pags.map(function(x){
+    var p = psPacPorId(x.pacId);
+    var pl = PS_PLANOS[x.plano]||PS_PLANOS.particular;
+    var isPend = x.status==='pendente';
+    return '<div class="psPayRow" style="opacity:' + (isPend?'.75':'1') + ';background:' + (isPend?'#fef9f0':'') + '">' +
+      '<div class="psPayIco" style="background:' + pl.cor + '20;font-size:20px">' + psPlanoEmoji(x.plano) + '</div>' +
+      '<div style="flex:1"><div style="font-size:13px;font-weight:500">' + (p?p.nome:'—') + '</div><div style="font-size:11px;color:var(--ink3);margin-top:1px">' + x.forma + ' · ' + x.obs + '</div></div>' +
+      '<span class="psBadge ' + pl.cls + '" style="margin-right:8px">' + pl.label + '</span>' +
+      (isPend
+        ? '<span class="psBadge psBgEspera">A receber</span>'
+        : '<div style="font-size:15px;font-weight:500;color:var(--green);font-family:DM Serif Display,serif">R$ ' + psFmtVal(x.valor) + '</div>') +
+      '</div>';
+  }).join('');
+}
+
+// RELATÓRIOS
+function psPaginaRelatorios() {
+  var rows = PS.relatorios.sort(function(a,b){ return b.data.localeCompare(a.data); }).map(function(r){
+    var p = psPacPorId(r.pacId);
+    var au = psUsrPorId(r.autorId);
+    var fs = r.arquivos&&r.arquivos.length ? r.arquivos.map(function(f){ return psIcoArq(f.tipo)+' '+f.nome; }).join(', ') : '—';
+    return '<tr><td>' + psFmtData(r.data) + '</td><td><strong>' + (p?p.nome:'—') + '</strong></td><td style="font-size:12px">' + (au?au.nome:'—') + '</td><td>' + r.titulo + '</td><td style="font-size:11px;color:var(--ink3)">' + fs + '</td></tr>';
+  }).join('');
+  return '<div>' +
+    '<div class="psPhdr"><div class="psPhdrLeft"><h2>Relatórios</h2><p>Prontuários e relatórios de sessão da clínica</p></div><button class="psBtn psBtnS" onclick="psImprimir()">🖨 Exportar</button></div>' +
+    '<div class="psGrid3" style="margin-bottom:20px">' +
+    '<div class="psStat"><div class="psStatL">Total de relatórios</div><div class="psStatV">' + PS.relatorios.length + '</div></div>' +
+    '<div class="psStat"><div class="psStatL">Com arquivos</div><div class="psStatV">' + PS.relatorios.filter(function(r){ return r.arquivos&&r.arquivos.length; }).length + '</div></div>' +
+    '<div class="psStat"><div class="psStatL">Este mês</div><div class="psStatV">' + PS.relatorios.filter(function(r){ return r.data.indexOf('2026-04')===0; }).length + '</div></div>' +
+    '</div>' +
+    '<div class="psTw"><table class="psTbl"><thead><tr><th>Data</th><th>Paciente</th><th>Profissional</th><th>Título</th><th>Anexos</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '</div>';
+}
+
+// USUÁRIOS
+function psPaginaUsuarios() {
+  return '<div>' +
+    '<div class="psPhdr"><div class="psPhdrLeft"><h2>Usuários</h2><p>Gerencie acessos e perfis da equipe</p></div><button class="psBtn psBtnP" onclick="psAbrirUsuario()">+ Novo usuário</button></div>' +
+    '<div class="psUserGrid" id="psUserGrid"></div></div>';
+}
+
+function psRenderUsuarios() {
+  var el = document.getElementById('psUserGrid');
+  if (!el) return;
+  var rl = {admin:'Administrador',profissional:'Profissional',recepcao:'Recepção'};
+  var rb = {admin:'psBgAdmin',profissional:'psBgProf',recepcao:'psBgRec'};
+  el.innerHTML = PS.usuarios.map(function(u){
+    return '<div class="psUserCard">' +
+      '<div style="display:flex;align-items:center;gap:12px">' +
+      '<div class="psUserAv" style="background:' + u.cor + '">' + u.iniciais + '</div>' +
+      '<div><div style="font-size:14px;font-weight:500;color:var(--ink)">' + u.nome + '</div><div style="font-size:11.5px;color:var(--ink3);margin-top:1px">' + u.email + '</div>' + (u.crp?'<div style="font-size:10.5px;color:var(--ink3);margin-top:1px">'+u.crp+'</div>':'') + '</div></div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between"><span class="psBadge ' + (rb[u.perfil]||'') + '">' + (rl[u.perfil]||u.perfil) + '</span><span style="font-size:11px;color:var(--ink3)">' + (u.espec||'') + '</span></div>' +
+      '<div style="display:flex;gap:8px"><button class="psBtn psBtnS psBtnXs" onclick="psEditarUsuario(\'' + u.id + '\')">Editar</button>' + (u.id!=='u1'?'<button class="psBtn psBtnD psBtnXs" onclick="psRemoverUsuario(\'' + u.id + '\')">Remover</button>':'') + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════
+// MODAIS
+// ═══════════════════════════════
+function psAbrirModal(id) { document.getElementById(id).classList.add('psOpen'); }
+function psFecharModal(id) { document.getElementById(id).classList.remove('psOpen'); }
+
+function psAbrirPaciente() {
+  document.getElementById('psPatPsi').innerHTML = PS.usuarios.filter(function(u){ return u.perfil==='profissional'; }).map(function(u){ return '<option value="' + u.id + '">' + u.nome + '</option>'; }).join('');
+  ['psPatNome','psPatNasc','psPatTel','psPatEmail','psPatCartao','psPatDx','psPatObs'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('psPatPlano').value='particular';
+  document.getElementById('psPatStatus').value='ativo';
+  psAbrirModal('psMoPaciente');
+}
+
+function psEditarPaciente(pid) {
+  var p = psPacPorId(pid);
+  if (!p) return;
+  psAbrirPaciente();
+  setTimeout(function(){
+    document.getElementById('psPatNome').value = p.nome||'';
+    document.getElementById('psPatNasc').value = p.nasc||'';
+    document.getElementById('psPatTel').value = p.tel||'';
+    document.getElementById('psPatEmail').value = p.email||'';
+    document.getElementById('psPatPsi').value = p.psiId||'';
+    document.getElementById('psPatPlano').value = p.plano||'particular';
+    document.getElementById('psPatCartao').value = p.cartao||'';
+    document.getElementById('psPatStatus').value = p.status||'ativo';
+    document.getElementById('psPatDx').value = p.dx||'';
+    document.getElementById('psPatObs').value = p.obs||'';
+  }, 50);
+}
+
+function psSalvarPaciente() {
+  var nome = document.getElementById('psPatNome').value.trim();
+  if (!nome) { psMostrarToast('Informe o nome do paciente','er'); return; }
+  PS.pacientes.push({
+    id:'p'+Date.now(), nome:nome,
+    nasc:document.getElementById('psPatNasc').value,
+    tel:document.getElementById('psPatTel').value,
+    email:document.getElementById('psPatEmail').value,
+    psiId:document.getElementById('psPatPsi').value,
+    dx:document.getElementById('psPatDx').value,
+    status:document.getElementById('psPatStatus').value,
+    plano:document.getElementById('psPatPlano').value,
+    cartao:document.getElementById('psPatCartao').value,
+    obs:document.getElementById('psPatObs').value,
+  });
+  psFecharModal('psMoPaciente');
+  psMostrarToast('Paciente cadastrado!','ok');
+  var el = document.getElementById('psPacTbody');
+  if (el) psRenderPacientes();
+}
+
+function psAbrirPagamento(pid) {
+  psPayPacId = pid;
+  var p = pid ? psPacPorId(pid) : null;
+  document.getElementById('psPaySub').textContent = p ? 'Paciente: ' + p.nome : 'Selecione o paciente abaixo';
+  document.getElementById('psPayPaciente').innerHTML = PS.pacientes.map(function(x){ return '<option value="' + x.id + '"' + (x.id===pid?' selected':'') + '>' + x.nome + '</option>'; }).join('');
+  var plano = p ? (p.plano||'particular') : 'particular';
+  document.getElementById('psPayPlano').value = plano;
+  document.getElementById('psPayValor').value = '';
+  document.getElementById('psPayObs').value = '';
+  document.getElementById('psPayData').value = '2026-04-11';
+  psAbrirModal('psMoPagamento');
+  psPayVerificarConvenio();
+}
+
+function psAbrirPagamentoPac(pid) { psAbrirPagamento(pid); }
+
+function psPayVerificarConvenio() {
+  var plano = document.getElementById('psPayPlano').value;
+  var ehConv = psEhConvenio(plano);
+  var aviso = document.getElementById('psPayAvisoConvenio');
+  var campoVal = document.getElementById('psPayCampoValor');
+  var campoForma = document.getElementById('psPayCampoForma');
+  var btnSalvar = document.getElementById('psPayBtnSalvar');
+  var titulo = document.getElementById('psPayTitulo');
+  if (aviso) aviso.style.display = ehConv ? 'block' : 'none';
+  if (campoVal) campoVal.style.display = ehConv ? 'none' : 'block';
+  if (campoForma) campoForma.style.display = ehConv ? 'none' : 'block';
+  if (btnSalvar) btnSalvar.textContent = ehConv ? 'Registrar atendimento' : 'Registrar pagamento';
+  if (titulo) titulo.textContent = ehConv ? 'Registrar Atendimento Convênio' : 'Registrar Pagamento';
+}
+
+function psPayAtualizarPlano() {
+  var sel = document.getElementById('psPayPaciente');
+  if (!sel) return;
+  var p = psPacPorId(sel.value);
+  if (p && p.plano) {
+    var pl = document.getElementById('psPayPlano');
+    if (pl) { pl.value = p.plano; psPayVerificarConvenio(); }
+  }
+}
+
+function psSalvarPagamento() {
+  var dt = document.getElementById('psPayData').value;
+  if (!dt) { psMostrarToast('Informe a data','er'); return; }
+  var pacId = document.getElementById('psPayPaciente').value || (PS.pacientes[0]||{}).id;
+  var plano = document.getElementById('psPayPlano').value;
+  var ehConv = psEhConvenio(plano);
+  var vl = ehConv ? 0 : (parseFloat(document.getElementById('psPayValor').value)||0);
+  if (!ehConv && vl <= 0) { psMostrarToast('Informe o valor recebido','er'); return; }
+  PS.pagamentos.push({
+    id:'py'+Date.now(), pacId:pacId, data:dt, valor:vl,
+    plano:plano,
+    forma: ehConv ? 'Convênio' : document.getElementById('psPayForma').value,
+    obs:document.getElementById('psPayObs').value,
+    status: ehConv ? 'pendente' : 'recebido'
+  });
+  psFecharModal('psMoPagamento');
+  psMostrarToast(ehConv ? 'Atendimento registrado — aguardando cobrança ao plano' : 'Pagamento registrado!', ehConv ? 'wa' : 'ok');
+  var el = document.getElementById('psCxLista');
+  if (el) psRenderCaixa();
+}
+
+function psAbrirRelatorio(pid) {
+  psRepPacId = pid;
+  var p = psPacPorId(pid);
+  document.getElementById('psRepSub').textContent = 'Relatório para: ' + (p?p.nome:'—');
+  document.getElementById('psRepData').value = '2026-04-11';
+  document.getElementById('psRepTitulo').value = '';
+  document.getElementById('psRepCorpo').value = '';
+  psArquivosPendentes = [];
+  psRenderListaArq();
+  psTrocarAba('escrita', document.querySelector('.psRtab'));
+  psAbrirModal('psMoRelatorio');
+}
+
+function psTrocarAba(aba, el) {
+  document.querySelectorAll('.psRtab').forEach(function(t){ t.classList.remove('psActive'); });
+  document.querySelectorAll('.psRtabContent').forEach(function(t){ t.classList.remove('psActive'); });
+  if (el) el.classList.add('psActive');
+  document.getElementById('psTab' + (aba==='escrita'?'Escrita':'Upload')).classList.add('psActive');
+}
+
+function psSelecionarArquivos(files) {
+  Array.from(files).forEach(function(f){
+    var ext = f.name.split('.').pop().toLowerCase();
+    var tipo = ext==='pdf'?'pdf':['jpg','jpeg','png'].includes(ext)?'img':'doc';
+    var tam = f.size<1048576 ? Math.round(f.size/1024)+'KB' : (f.size/1048576).toFixed(1)+'MB';
+    psArquivosPendentes.push({nome:f.name, tamanho:tam, tipo:tipo});
+  });
+  psRenderListaArq();
+}
+
+function psDropArquivo(e) {
+  e.preventDefault();
+  document.getElementById('psUploadZone') && (document.getElementById('psUploadZone').style.borderColor='');
+  psSelecionarArquivos(e.dataTransfer.files);
+}
+
+function psRenderListaArq() {
+  var el = document.getElementById('psListaArquivos');
+  if (!el) return;
+  el.innerHTML = psArquivosPendentes.map(function(f,i){
+    var cor = f.tipo==='pdf'?'var(--red)':f.tipo==='img'?'var(--green)':'var(--blue)';
+    return '<div class="psFileItem"><div class="psFileIco" style="background:' + cor + '">' + f.tipo.toUpperCase() + '</div><div style="flex:1;font-size:13px">' + f.nome + '</div><div style="font-size:11px;color:var(--ink3)">' + f.tamanho + '</div><button onclick="psArquivosPendentes.splice(' + i + ',1);psRenderListaArq()" style="background:none;border:none;cursor:pointer;color:var(--ink3);padding:4px;font-size:14px">✕</button></div>';
+  }).join('');
+}
+
+function psSalvarRelatorio() {
+  var dt = document.getElementById('psRepData').value;
+  var corpo = document.getElementById('psRepCorpo').value.trim();
+  var isUpload = document.querySelector('.psRtabContent.psActive') && document.querySelector('.psRtabContent.psActive').id === 'psTabUpload';
+  if (!dt) { psMostrarToast('Informe a data','er'); return; }
+  if (!isUpload && !corpo) { psMostrarToast('Escreva o conteúdo','er'); return; }
+  if (isUpload && !psArquivosPendentes.length) { psMostrarToast('Adicione ao menos um arquivo','er'); return; }
+  PS.relatorios.push({
+    id:'r'+Date.now(), pacId:psRepPacId, autorId:psCU.id, data:dt,
+    titulo:document.getElementById('psRepTitulo').value || (isUpload?'Arquivo importado':'Relatório de sessão'),
+    corpo:isUpload?('[Arquivos: ' + psArquivosPendentes.map(function(f){ return f.nome; }).join(', ') + ']'):corpo,
+    arquivos:isUpload?psArquivosPendentes.slice():[],
+  });
+  psFecharModal('psMoRelatorio');
+  psArquivosPendentes = [];
+  psMostrarToast('Relatório salvo!','ok');
+  if (psPacienteAtual === psRepPacId) psRenderDetalhe(psRepPacId);
+}
+
+function psAbrirUsuario() {
+  psEditUsrId = null;
+  document.getElementById('psUsrTitulo').textContent = 'Novo Usuário';
+  ['psUsrNome','psUsrEspec','psUsrEmail','psUsrSenha','psUsrCrp'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('psUsrPerfil').value = 'profissional';
+  psAbrirModal('psMoUsuario');
+}
+
+function psEditarUsuario(uid) {
+  var u = psUsrPorId(uid);
+  if (!u) return;
+  psEditUsrId = uid;
+  document.getElementById('psUsrTitulo').textContent = 'Editar Usuário';
+  document.getElementById('psUsrNome').value = u.nome;
+  document.getElementById('psUsrEspec').value = u.espec||'';
+  document.getElementById('psUsrEmail').value = u.email;
+  document.getElementById('psUsrSenha').value = u.senha;
+  document.getElementById('psUsrPerfil').value = u.perfil;
+  document.getElementById('psUsrCrp').value = u.crp||'';
+  psAbrirModal('psMoUsuario');
+}
+
+function psSalvarUsuario() {
+  var nome = document.getElementById('psUsrNome').value.trim();
+  var email = document.getElementById('psUsrEmail').value.trim();
+  var senha = document.getElementById('psUsrSenha').value;
+  var perfil = document.getElementById('psUsrPerfil').value;
+  if (!nome||!email||!senha) { psMostrarToast('Preencha os campos obrigatórios','er'); return; }
+  var cores = {admin:'#5b3bcc',profissional:'#3d7065',recepcao:'#b87333'};
+  var ini = nome.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase();
+  if (psEditUsrId) {
+    var u = psUsrPorId(psEditUsrId);
+    if (u) { u.nome=nome; u.email=email; u.senha=senha; u.perfil=perfil; u.espec=document.getElementById('psUsrEspec').value; u.crp=document.getElementById('psUsrCrp').value; u.cor=cores[perfil]||'#888'; u.iniciais=ini; }
+  } else {
+    PS.usuarios.push({id:'u'+Date.now(),nome:nome,email:email,senha:senha,perfil:perfil,espec:document.getElementById('psUsrEspec').value,crp:document.getElementById('psUsrCrp').value,cor:cores[perfil]||'#888',iniciais:ini});
+  }
+  psFecharModal('psMoUsuario');
+  psMostrarToast(psEditUsrId?'Usuário atualizado!':'Usuário criado!','ok');
+  psRenderUsuarios();
+}
+
+function psRemoverUsuario(uid) {
+  if (!confirm('Remover este usuário?')) return;
+  PS.usuarios = PS.usuarios.filter(function(u){ return u.id!==uid; });
+  psMostrarToast('Usuário removido','wa');
+  psRenderUsuarios();
+}
+
+function psAbrirAgendamento(pid) {
+  var pats = psCU.perfil==='profissional' ? PS.pacientes.filter(function(p){ return p.psiId===psCU.id; }) : PS.pacientes;
+  document.getElementById('psAgPaciente').innerHTML = pats.map(function(p){ return '<option value="' + p.id + '"' + (p.id===pid?' selected':'') + '>' + p.nome + '</option>'; }).join('');
+  document.getElementById('psAgData').value = '2026-04-11';
+  document.getElementById('psAgObs').value = '';
+  psAbrirModal('psMoAgenda');
+}
+
+function psSalvarAgenda() {
+  var pid = document.getElementById('psAgPaciente').value;
+  var dt = document.getElementById('psAgData').value;
+  if (!pid||!dt) { psMostrarToast('Preencha os campos obrigatórios','er'); return; }
+  PS.consultas.push({id:'a'+Date.now(), pacId:pid, data:dt, hora:document.getElementById('psAgHora').value, tipo:document.getElementById('psAgTipo').value, status:'confirmed', obs:document.getElementById('psAgObs').value});
+  psFecharModal('psMoAgenda');
+  psMostrarToast('Consulta agendada!','ok');
+  var el = document.getElementById('psCalGrid');
+  if (el) psMontarCalendario();
+}
+
+// ═══════════════════════════════
+// EXPORTAR
+// ═══════════════════════════════
+function psExportarCSV() {
+  var csv = 'Data,Paciente,Plano,Forma,Descricao,Valor\n';
+  PS.pagamentos.forEach(function(x){
+    var p = psPacPorId(x.pacId);
+    csv += '"' + x.data + '","' + (p?p.nome:'—') + '","' + (PS_PLANOS[x.plano]||{}).label + '","' + x.forma + '","' + x.obs + '","' + x.valor.toFixed(2) + '"\n';
+  });
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href=url; a.download='psiclinica_financeiro.csv'; a.click();
+  psMostrarToast('CSV exportado!','ok');
+}
+
+function psImprimir() {
+  var pagMes = PS.pagamentos.filter(function(p){ return p.data.indexOf('2026-04')===0; });
+  var total = pagMes.reduce(function(s,p){ return s+p.valor; },0);
+  var pagHoje = PS.pagamentos.filter(function(p){ return p.data==='2026-04-11'; });
+  var totalHoje = pagHoje.reduce(function(s,p){ return s+p.valor; },0);
+  var byPl = {};
+  Object.keys(PS_PLANOS).forEach(function(k){ byPl[k]=pagMes.filter(function(p){ return p.plano===k; }).reduce(function(s,x){ return s+x.valor; },0); });
+  var plRows = Object.keys(byPl).filter(function(k){ return byPl[k]>0; }).map(function(k){
+    return '<tr><td style="padding:6px 12px">' + PS_PLANOS[k].label + '</td><td style="padding:6px 12px;text-align:right">R$ ' + psFmtVal(byPl[k]) + '</td></tr>';
+  }).join('');
+  var rows = pagMes.map(function(x){
+    var p = psPacPorId(x.pacId);
+    return '<tr><td>' + psFmtData(x.data) + '</td><td>' + (p?p.nome:'—') + '</td><td>' + (PS_PLANOS[x.plano]||{}).label + '</td><td>' + x.forma + '</td><td style="text-align:right">R$ ' + psFmtVal(x.valor) + '</td></tr>';
+  }).join('');
+  var w = window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório Financeiro — PsiClínica</title>' +
+    '<style>body{font-family:Georgia,serif;margin:40px;color:#1a2a26}h1{font-size:26px}table{width:100%;border-collapse:collapse;margin-top:12px}th{background:#f5f1eb;padding:8px 12px;text-align:left;font-size:12px;text-transform:uppercase}td{border-bottom:1px solid #e0dbd3;padding:7px 12px;font-size:13px}.tot{font-size:22px;font-weight:bold;color:#3d7065}.sep{border-top:2px solid #3d7065;margin:24px 0}</style>' +
+    '</head><body><h1>PsiClínica — Relatório Financeiro</h1><p style="color:#4a5e59;font-size:13px">Gerado em ' + new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + '</p><div class="sep"></div>' +
+    '<h2 style="font-size:16px">Resumo — Abril 2026</h2><p>Total do mês: <span class="tot">R$ ' + psFmtVal(total) + '</span></p><p style="margin-top:6px">Total de hoje: <strong>R$ ' + psFmtVal(totalHoje) + '</strong></p>' +
+    '<h2 style="font-size:15px;margin-top:24px">Por plano</h2><table><thead><tr><th>Plano</th><th style="text-align:right">Valor</th></tr></thead><tbody>' + plRows + '</tbody></table>' +
+    '<h2 style="font-size:15px;margin-top:24px">Detalhamento</h2><table><thead><tr><th>Data</th><th>Paciente</th><th>Plano</th><th>Forma</th><th style="text-align:right">Valor</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<div class="sep"></div><p style="font-size:11px;color:#7a8f8a">PsiClínica — Relatório confidencial</p><script>window.print();<\/script></body></html>');
+  w.document.close();
+}
+
+// ═══════════════════════════════
+// UTILS
+// ═══════════════════════════════
+function psPacPorId(id) { for(var i=0;i<PS.pacientes.length;i++) if(PS.pacientes[i].id===id) return PS.pacientes[i]; return null; }
+function psUsrPorId(id) { for(var i=0;i<PS.usuarios.length;i++) if(PS.usuarios[i].id===id) return PS.usuarios[i]; return null; }
+function psFmtVal(v) { return v.toLocaleString('pt-BR',{minimumFractionDigits:2}); }
+function psFmtData(d) { if(!d) return '—'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function psStr2(n) { return String(n).padStart(2,'0'); }
+function psIcoArq(t) { return t==='pdf'?'📄':t==='img'?'🖼':'📝'; }
+function psPlanoEmoji(p) { return {particular:'💵',unimed:'🏥',amil:'💙',sulamerica:'🌿',bradesco:'❤️',outro:'📋'}[p]||'💳'; }
+
+function psMostrarToast(msg, tipo) {
+  var c = document.getElementById('psToast');
+  var el = document.createElement('div');
+  el.className = 'psToastItem ' + (tipo||'');
+  el.textContent = msg;
+  c.appendChild(el);
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.classList.add('show'); }); });
+  setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ el.remove(); }, 400); }, 3000);
+}
+
+// Fechar modal clicando fora
+document.querySelectorAll('.psMo').forEach(function(m){
+  m.addEventListener('click', function(e){ if(e.target===m) m.classList.remove('psOpen'); });
+});
+</script>
+</body>
+</html>
